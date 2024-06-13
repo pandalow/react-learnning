@@ -1,8 +1,8 @@
 # react-learnning
 With udemy course learnning react - code &amp; notes
-
-#### 1st project: tic-tac-toe:
-##### Core learnning
+---
+### 1st project: tic-tac-toe:
+#### Core learnning
 - Lift state up
 - Closure
 - Spread Operator && Rest Operator
