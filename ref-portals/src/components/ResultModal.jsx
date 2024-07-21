@@ -27,7 +27,7 @@ const ResultModal = forwardRef(function ResultModal({ remainingTime, targetTime,
             </form>
         </dialog>
         ,
-        document.getElementById('modals')
+        document.getElementById('modal')
     )
 });
 export default ResultModal;
