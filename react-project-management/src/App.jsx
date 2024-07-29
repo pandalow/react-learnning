@@ -7,73 +7,111 @@ import DefaultPage from "./components/DefaultPage";
 
 
 function App() {
-
-  const [isCreateProject, setIsCreateProject] = useState(false);
-  const [isShowProject, setIsShowProject] = useState(false);
-
-  const [pickedProject, setPickedProject] = useState({});
-  const [projects, setProjects] = useState([]);
-
-  const projectRef = useRef();
-  const taskRef = useRef();
-
-  function handleClickedProject(index) {
-    setIsShowProject(true);
-    setPickedProject(projects[index]);
-    console.log(pickedProject);
+  const [projectsState, setProjectsState] = useState(
+    {
+      selectedProject: undefined,
+      projects: [],
+      tasks:[]
+    }
+  )
+  function handleClickedProject(id) {
+    setProjectsState(prevState => {
+      return {
+        ...prevState,
+        selectedProject: id
+      }
+    });
   }
 
   function handleAddProject() {
-    setIsCreateProject(true);
+    setProjectsState(prevState => ({
+      ...prevState,
+      selectedProject: null
+    }));
   }
 
-  function handleAddTask(event) {
-    event.preventDefault();
-    const form = taskRef.current;
-    const task = form.task.value;
-    const updatedProject = { ...pickedProject, tasks: [...pickedProject.tasks, task] };
-    const updatedProjects = projects.map((project) => { return project.title === updatedProject.title ? updatedProject : project }
-    );
-
-    setPickedProject(updatedProject);
-    setProjects(updatedProjects);
-    form.reset(); // clear the input field
+  function handleCancelAddProject() {
+    setProjectsState(prevState => ({
+      ...prevState,
+      selectedProject: undefined
+    }));
   }
 
-  function handleSave(event) {
-    event.preventDefault();
-    const form = projectRef.current;
-    const title = form.title.value;
-    const description = form.description.value;
-    const dueDate = form.dueDate.value;
+  // This Part is called props drilling
+  function handleAddTask(text) { 
+    setProjectsState(prevState => {
+      const taskId = Math.random()
+      const newTask = {
+        text:text,
+        projectId:prevState.selectedProject,
+        id: taskId
+      }
+      return {
+        ...prevState,
+        projects: [...prevState.tasks, newTask]
+      }
+    });
+  }
+  function handleDeleteTask(id) {
+    setProjectsState(prevState => {
+      return {
+        ...prevState,
+        task: prevState.projects.filter(task => task.id !== id)
+      }
+    });
+   }
 
-    setProjects([...projects, { title, description, dueDate, tasks: [] }]);
-    setIsCreateProject(false);
+  function handleSave(projectData) {
+    setProjectsState(prevState => {
+      const projectId = Math.random()
 
+      const newProject = {
+        ...projectData,
+        id: projectId
+      }
+      return {
+        ...prevState,
+        selectedProject: undefined,
+        projects: [...prevState.projects, newProject
+        ]
+      }
+    });
+  }
+
+  function handleDeleteProject() {
+    setProjectsState(prevState => {
+      return {
+        ...prevState,
+        selectedProject: undefined,
+        projects: prevState.projects.filter(project => project.id !== prevState.selectedProject)
+      }
+    });
+  }
+  const chooseProject = projectsState.projects.find(project => project.id === projectsState.selectedProject);
+
+  let content = <ProjectDetails
+    project={chooseProject}
+    onDelete={handleDeleteProject}
+    onAddTask={handleAddTask}
+    onDeleteTask={handleDeleteTask} 
+    tasks={projectsState.tasks}
+    />;
+
+  if (projectsState.selectedProject === null) {
+    content = <ProjectCreation handleSave={handleSave} onCancel={handleCancelAddProject} />
+  } else if (projectsState.selectedProject === undefined) {
+    content = <DefaultPage handleAddProject={handleAddProject} />
   }
 
   return (
-    <>
-    <div className="flex">
-      <div className="w-1/4 bg-green-700">
+    <main className="h-screen my-8 flex gap-8">
       <ProjectSideBar
         handleAddProject={handleAddProject}
-        projects={projects}
-        handleClickedProject={handleClickedProject}
+        projects={projectsState.projects}
+        onSelectProject={handleClickedProject}
       />
-      </div>
-      <div className="w-3/4">
-      {!(isCreateProject || isShowProject) && <DefaultPage handleAddProject={handleAddProject} />}
-
-      {isCreateProject && <ProjectCreation
-        ref={projectRef}
-        saveProject={handleSave}
-      />}
-
-      {isShowProject && <ProjectDetails project={pickedProject} ref={taskRef} handleAddTask={handleAddTask} />}
-      </div>
-      </div>
-    </>
+      {content}
+    </main>
   );
 }
 
