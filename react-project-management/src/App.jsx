@@ -23,6 +23,51 @@ function App() {
     });
   }
 
+  function handleExportFile() {
+    // Combine projects and tasks into one object
+    const data = JSON.stringify({
+      projects: projectsState.projects,
+      tasks: projectsState.tasks
+    });
+    
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'projects.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleExportFile() {
+    const data = JSON.stringify({
+      projects: projectsState.projects,
+      tasks: projectsState.tasks
+    });
+
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'projects.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportFile(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const importedData = JSON.parse(e.target.result);
+      setProjectsState(prevState => ({
+        ...prevState,
+        projects: [...prevState.projects, ...importedData.projects],
+        tasks: [...prevState.tasks, ...importedData.tasks]
+      }));
+    };
+    reader.readAsText(file);
+  }
+
   function handleAddProject() {
     setProjectsState(prevState => ({
       ...prevState,
@@ -48,15 +93,16 @@ function App() {
       }
       return {
         ...prevState,
-        projects: [...prevState.tasks, newTask]
+        tasks: [...prevState.tasks, newTask]
       }
     });
   }
+
   function handleDeleteTask(id) {
     setProjectsState(prevState => {
       return {
         ...prevState,
-        task: prevState.projects.filter(task => task.id !== id)
+        tasks: prevState.projects.filter(task => task.id !== id)
       }
     });
    }
@@ -109,6 +155,8 @@ function App() {
         handleAddProject={handleAddProject}
         projects={projectsState.projects}
         onSelectProject={handleClickedProject}
+        handleExport={handleExportFile}
+        handleImport={handleImportFile}
       />
       {content}
     </main>
